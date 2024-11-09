@@ -16,12 +16,13 @@ This repository contains an implementation of the paper __Conformer: Convolution
 - [x] [KenLM](https://kheafield.com/code/kenlm/)
 - [x] [Boosting Sequence Generation Performance with Beam Search Language Model Decoding](https://towardsdatascience.com/boosting-your-sequence-generation-performance-with-beam-search-language-model-decoding-74ee64de435a)
 
-## Model
-![Conformer](https://github.com/LuluW8071/ASR-with-Speech-Sentiment-and-Text-Summarizer/blob/main/docs/conformer.png)
+## Conformer Model
+
+![Conformer](assets/conformer.png)
 
 ### Model Architecture Params
 
-| Model           | Conformer (S) | Conformer (M) | Conformer (L) |
+| Model           | Conformer (Small) | Conformer (Medium) | Conformer (Large) |
 |-----------------|---------------|---------------|---------------|
 | Encoder Layers  | 16            | 16            | 17            |
 | Encoder Dim     | 144           | 256           | 512           |
@@ -84,14 +85,17 @@ python3 train.py
 --precision 16-mixed   # Precision of the training
 --checkpoint_path path_to_checkpoint.ckpt    # Checkpoint path to resume training from
 ```
+## Experiment Results
 
-## Results
+The confomer model (small) was trained on __Common Voice Dataset 7.0__, __my personal recordings__ and __LibriSpeech Train Set__ (~ 1200 hrs and 960 hrs) and validated on splitted dataset and __LibriSpeech Test Set__(~ 100 hrs and 10.5 hrs).
 
-The model was trained on __Common Voice Dataset 7.0__ and __my personal recordings__ (~ 1200 hours) and validated on splitted dataset (~ 100 hours).
+![Loss Curve](assets/train_loss,val_loss%20VS%20step.jpeg)
 
-<!-- | Dataset       | WER  |
-|---------------|------|
-| LibriSpeech   | 5.3% | -->
+| Train Dataset       | Validation Dataset       | Train Loss | Validation Loss | Greedy WER  |
+|---------------|------|----|----|----|
+| LibriSpeech Train (960 hrs) | LibriSpeech (10.5 hrs) | 0.4484 | 0.3119 |22.94% | 
+
+> _Expected WER for CTC+KEN-LM to be __<15% WER__._
 
 ## Citations
 
@@ -103,4 +107,3 @@ The model was trained on __Common Voice Dataset 7.0__ and __my personal recordin
       url={https://arxiv.org/abs/2005.08100}, 
 }
 ```
-

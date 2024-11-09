@@ -1,0 +1,16 @@
+# Environments and Secret Keys 
+.env
+.venv
+env/
+venv/
+
+# Caches
+__pycache__
+audio_temp
+
+# Data
+data
+
+# Checkpoints
+saved_checkpoint
+freezed

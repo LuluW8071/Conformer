@@ -1,0 +1,11 @@
+torch 
+torchaudio
+torchvision
+lightning
+pyaudio
+librosa
+matplotlib
+numpy
+torchmetrics
+comet_ml
+python-doten
