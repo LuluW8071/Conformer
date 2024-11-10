@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Code in Progress](https://img.shields.io/badge/status-in_progress-yellow.svg) ![License](https://img.shields.io/github/license/LuluW8071/Conformer) ![Open Issues](https://img.shields.io/github/issues/LuluW8071/Conformer) ![Closed Issues](https://img.shields.io/github/issues-closed/LuluW8071/Conformer) ![Open PRs](https://img.shields.io/github/issues-pr/LuluW8071/Conformer) ![Repo Size](https://img.shields.io/github/repo-size/LuluW8071/Conformer) ![Last Commit](https://img.shields.io/github/last-commit/LuluW8071/Conformer)
+![Code in Progress](https://img.shields.io/badge/status-in_progress-yellow.svg) ![License](https://img.shields.io/github/license/LuluW8071/Conformer) ![Open Issues](https://img.shields.io/github/issues/LuluW8071/Conformer) ![Repo Size](https://img.shields.io/github/repo-size/LuluW8071/Conformer) ![Last Commit](https://img.shields.io/github/last-commit/LuluW8071/Conformer)
 
 </div>
 
@@ -122,7 +122,7 @@ The __confomer model (small)__ was trained on __Mozilla Common Voice Dataset 7.0
 |  <img src="https://dagshub.com/repo-avatars/2561" width="30px" /> | 0.4484 | 0.3119 |22.94% | [:link:](https://drive.google.com/uc?id=1XcouMWSncUeNBvGZednuWYK1jdfKisCr)
 | <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1rPYa2Q9zPtwLUeZJP3pWeNwmJjRpcLlpdQ&s" width="30px" />   | ![Status](https://img.shields.io/badge/status-in_progress-yellow.svg) |![Status](https://img.shields.io/badge/status-in_progress-yellow.svg) | ![Status](https://img.shields.io/badge/status-in_progress-yellow.svg)
 
-> _Expected WER for CTC+KEN-LM to be __<15% WER__ and inference with CTC+KEN-LM is found to be in the [notebook](https://github.com/LuluW8071/Conformer/notebooks/Conformer_Inference_With_CTC_Decoder.ipynb)._
+> _Expected WER for CTC+KEN-LM to be __<15% WER__ and inference with CTC+KEN-LM is found to be in the [notebook](https://github.com/LuluW8071/Conformer/blob/main/notebooks/Conformer_Inference_With_CTC_Decoder.ipynb)._
 
 
 ## Citations
