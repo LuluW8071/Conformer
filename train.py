@@ -75,7 +75,7 @@ class ASRTrainer(pl.LightningModule):
         return [optimizer], [scheduler]
 
     def _common_step(self, batch, batch_idx):
-        spectrograms, labels, input_lengths, label_lengths, _, _ = batch
+        spectrograms, labels, input_lengths, label_lengths, _ = batch
 
         # Directly calls forward method of conformer and pass spectrograms
         output = self(spectrograms)
