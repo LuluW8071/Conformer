@@ -3,9 +3,11 @@ torchaudio
 torchvision
 lightning
 pyaudio
-librosa
-matplotlib
 numpy
 torchmetrics
 comet_ml
-python-doten
+python-dotenv
+soundfile
+sox
+gradio
+flashlight-text

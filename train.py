@@ -1,13 +1,13 @@
 import comet_ml
-import pytorch_lightning as pl
 import os 
 import argparse
+import pytorch_lightning as pl
 import torch
+
 import torch.nn.functional as F
 import torch.optim as optim
+import torch import nn
 
-from collections import OrderedDict
-from torch import nn
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor, EarlyStopping
 from pytorch_lightning.loggers import CometLogger
 from torchmetrics.text import WordErrorRate, CharErrorRate
@@ -39,12 +39,15 @@ class ASRTrainer(pl.LightningModule):
         self.model = model
         self.args = args
 
-        # Metrics
         self.losses = []
         self.val_cer = []
         self.val_wer = []
+
+        # Metrics
+        # NOTE: Comment CER since validation phase takes a lot of time to compute error for each character
         self.char_error_rate = CharErrorRate()
         self.word_error_rate = WordErrorRate()
+
         self.loss_fn = nn.CTCLoss(blank=28, zero_infinity=True)
 
         # Precompute sync_dist for distributed GPUs train
@@ -65,9 +68,9 @@ class ASRTrainer(pl.LightningModule):
         scheduler = {
             "scheduler": optim.lr_scheduler.CosineAnnealingWarmRestarts(
                 optimizer,
-                T_0=10,             # Number of epochs for the first restart
-                T_mult=1,           # Factor to increase T_0 after each restart
-                eta_min=7e-6,       # Minimum learning rate
+                T_0=5,             # Number of epochs for the first restart
+                T_mult=2,           # Factor to increase T_0 after each restart
+                eta_min=5e-6,       # Minimum learning rate
             ),
             "monitor": "val_loss",
         }
@@ -104,12 +107,9 @@ class ASRTrainer(pl.LightningModule):
         self.losses.append(loss)
 
         # Greedy decoding
-        decoded_preds, decoded_targets = GreedyDecoder(
-            y_pred.transpose(0, 1), labels, label_lengths
-        )
+        decoded_preds, decoded_targets = GreedyDecoder(y_pred.transpose(0, 1), labels, label_lengths)
 
         # Calculate metrics
-        # NOTE: Comment CER if u want since validation phase takes a lot of time to compute error for each character
         cer_batch = self.char_error_rate(decoded_preds, decoded_targets)
         wer_batch = self.word_error_rate(decoded_preds, decoded_targets)
 
@@ -117,10 +117,11 @@ class ASRTrainer(pl.LightningModule):
         self.val_cer.append(cer_batch)
         self.val_wer.append(wer_batch)
 
-        # Log final predictions in CometML
-        if batch_idx % 100 == 0:
-            log_targets = decoded_targets[-1]
-            log_preds = {"Preds": decoded_preds[-1]}
+        # Log some predictions during validation phase in CometML
+        # NOTE: If validation set is too less, set batch_idx % 20 or any other condition  
+        if batch_idx % 200 == 0:
+            log_targets = decoded_targets[0]
+            log_preds = {"Preds": decoded_preds[0]}
             self.logger.experiment.log_text(text=log_targets, metadata=log_preds)
 
         return {"val_loss": loss}
@@ -131,30 +132,16 @@ class ASRTrainer(pl.LightningModule):
         avg_cer = torch.stack(self.val_cer).mean()
         avg_wer = torch.stack(self.val_wer).mean()
 
-        # Log averaged metrics
-        self.log(
-            "val_cer",
-            avg_cer,
-            on_step=False,
-            on_epoch=True,
-            prog_bar=True,
-            logger=True,
-            batch_size=self.args.batch_size,
-            sync_dist=self.sync_dist,
-        )
-        self.log(
-            "val_wer",
-            avg_wer,
-            on_step=False,
-            on_epoch=True,
-            prog_bar=True,
-            logger=True,
-            batch_size=self.args.batch_size,
-            sync_dist=self.sync_dist,
-        )
-        self.log(
-            "val_loss",
-            avg_loss,
+        # Prepare metrics dictionary and log all metrics at once
+        metrics = {
+            "val_cer": avg_cer,
+            "val_wer": avg_wer,
+            "val_loss": avg_loss,
+        }
+
+        # Log all metrics at once
+        self.log_dict(
+            metrics,
             on_step=False,
             on_epoch=True,
             prog_bar=True,
@@ -184,24 +171,24 @@ def main(args):
     # Define model hyperparameters
     # https://arxiv.org/pdf/2005.08100 : Table 1 for conformer parameters
     encoder_params = {
-        "d_input": 80,  # Input features: n-mels
-        "d_model": 144,  # Encoder Dims
-        "num_layers": 16,  # Encoder Layers
+        "d_input": 80,          # Input features: n-mels
+        "d_model": 144,         # Encoder Dims
+        "num_layers": 16,       # Encoder Layers
         "conv_kernel_size": 31,
         "feed_forward_residual_factor": 0.5,
         "feed_forward_expansion_factor": 4,
-        "num_heads": 4,  # Relative MultiHead Attetion Heads
+        "num_heads": 4,         # Relative MultiHead Attetion Heads
         "dropout": 0.1,
     }
 
     decoder_params = {
-        "d_encoder": 144,  # Match with Encoder layer
-        "d_decoder": 320,  # Decoder Dim
-        "num_layers": 1,  # Deocder Layer
-        "num_classes": 29,  # Output Classes
+        "d_encoder": 144,       # Match with Encoder layer
+        "d_decoder": 320,       # Decoder Dim
+        "num_layers": 1,        # Deocder Layer
+        "num_classes": 29,      # Output Classes
     }
 
-    # Model Instance
+    # Optimize Model Instance for faster training
     model = ConformerASR(encoder_params, decoder_params)
     model = torch.compile(model)
 
@@ -216,8 +203,8 @@ def main(args):
     checkpoint_callback = ModelCheckpoint(
         monitor="val_loss",
         dirpath="./saved_checkpoint/",
-        filename="ASR-conformer-{epoch:02d}{val_wer:.2f}",
-        save_top_k=3,  # 3 Checkpoints
+        filename="Conformer-{epoch:02d}-{val_loss:.2f}-{val_wer:.2f}",
+        save_top_k=3,   # 3 Checkpoints
         mode="min",
     )
 
@@ -225,6 +212,7 @@ def main(args):
     trainer_args = {
         "accelerator": device,
         "devices": args.gpus,
+        "strategy": args.dist_backend if args.gpus > 1 else "auto",   # Distributed Backend for multi GPU training
         "min_epochs": 1,
         "max_epochs": args.epochs,
         "precision": args.precision,
@@ -232,20 +220,17 @@ def main(args):
         "gradient_clip_val": 1.0,
         "callbacks": [
             LearningRateMonitor(logging_interval="epoch"),
-            EarlyStopping(monitor="val_loss"),
+            EarlyStopping(monitor="val_loss", patience=5),  # Early stopping
             checkpoint_callback,
         ],
         "logger": comet_logger,
-    }
 
-    if args.gpus > 1:
-        trainer_args["strategy"] = args.dist_backend
+    }
 
     trainer = pl.Trainer(**trainer_args)
 
     # Train and Validate
-    ckpt_path = args.checkpoint_path
-    trainer.fit(speech_trainer, data_module, ckpt_path=ckpt_path)
+    trainer.fit(speech_trainer, data_module, ckpt_path=args.checkpoint_path)
     trainer.validate(speech_trainer, data_module)
 
 
@@ -263,9 +248,9 @@ if __name__ == "__main__":
     parser.add_argument('--valid_json', default=None, required=True, type=str, help='json file to load testing data')
 
     # General Train Hyperparameters
-    parser.add_argument('--epochs', default=30, type=int, help='number of total epochs to run')
+    parser.add_argument('--epochs', default=50, type=int, help='number of total epochs to run')
     parser.add_argument('--batch_size', default=32, type=int, help='size of batch')
-    parser.add_argument('-lr', '--learning_rate', default=5e-5, type=float, help='learning rate')
+    parser.add_argument('-lr', '--learning_rate', default=4e-5, type=float, help='learning rate')
     parser.add_argument('--precision', default='16-mixed', type=str, help='precision')
     
     # Checkpoint path
