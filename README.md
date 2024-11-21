@@ -24,7 +24,7 @@ This repository provides an implementation of the paper *Conformer: Convolution-
 
 ### 1. Clone the Repository
 ```bash
-git clone --recursive https://github.com/LuluW8071/Conformer.git
+git clone https://github.com/LuluW8071/Conformer.git
 cd Conformer
 ```
 
@@ -93,11 +93,19 @@ To train the Conformer model:
 python3 train.py \
     -g 4 \                    # Number of GPUs
     -w 8 \                    # Number of CPU workers
-    --epochs 100 \             # Number of epochs
+    --epochs 100 \            # Number of epochs
     --batch_size 32 \         # Batch size
     -lr 4e-5 \                # Learning rate
     --precision 16-mixed \    # Mixed precision training
     --checkpoint_path /path/to/checkpoint.ckpt  # Optional: Resume from a checkpoint
+```
+
+### Inference
+
+To transcribe audio files:
+```bash
+python3 engine.py \
+    --checkpoint_path /path/to/checkpoint.ckpt \
 ```
 
 ---
