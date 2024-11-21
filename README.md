@@ -8,13 +8,13 @@
 
 ![Conformer](assets/conformer.png)
 
-This repository provides an implementation of the paper *Conformer: Convolution-augmented Transformer for Speech Recognition*. It includes training scripts for distributed GPU training using **Lightning AI**.
+This repository provides an implementation of the paper *__Conformer__: Convolution-augmented Transformer for Speech Recognition*. It includes training scripts including support for distributed GPU training using **Lightning AI** and web-app for inference using __Gradio__. 
 
 ## 📄 Paper and Blog References
 
 - [__Attention Is All You Need__](https://arxiv.org/pdf/1706.03762)
-- [__Conformer: Convolution-augmented Transformer for Speech Recognition__](https://arxiv.org/pdf/2005.08100)
-- [__Transformer-XL: Attentive Language Models Beyond a Fixed-Length Context__](https://arxiv.org/pdf/1901.02860)
+- [__Conformer__: Convolution-augmented Transformer for Speech Recognition](https://arxiv.org/pdf/2005.08100)
+- [__Transformer-XL__: Attentive Language Models Beyond a Fixed-Length Context](https://arxiv.org/pdf/1901.02860)
 - [__KenLM__](https://kheafield.com/code/kenlm/)
 - [__Boosting Sequence Generation Performance with Beam Search Language Model Decoding__](https://towardsdatascience.com/boosting-your-sequence-generation-performance-with-beam-search-language-model-decoding-74ee64de435a)
 
@@ -58,8 +58,7 @@ python3 common_voice.py \
     --file_path /path/to/validated.tsv \
     --save_json_path converted_clips \
     -w 4 \
-    --percent 10 \
-    --output_format wav
+    --percent 10
 ```
 
 #### 2. Personal Recordings
@@ -142,8 +141,7 @@ python3 engine.py \
 | LibriSpeech | 22.94    | [:link:](https://drive.google.com/file/d/1XcouMWSncUeNBvGZednuWYK1jdfKisCr/view?usp=drive_link) |
 | Mozilla Corpus | 25.29 | [:link:](https://drive.google.com/file/d/1b_ElF1ihnI1H4dTlGzAQQJZzgOt0jqiv/view?usp=drive_link) |
 
-> Expected WER with **CTC + KenLM** decoding: **<15%**.  
-
+> Expected WER with **CTC + KenLM** decoding: **~15%**.  
 
 ---
 
