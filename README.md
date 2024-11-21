@@ -53,7 +53,7 @@ pip install -r requirements.txt
 
 #### 1. Common Voice Conversion
 To preprocess the Common Voice dataset:
-```bash
+```py
 python3 common_voice.py \
     --file_path /path/to/validated.tsv \
     --save_json_path converted_clips \
@@ -65,7 +65,7 @@ python3 common_voice.py \
 #### 2. Personal Recordings
 To record your own voice, use [__Mimic Record Studio__](https://github.com/MycroftAI/mimic-recording-studio) and prepare it for training :
 
-```bash
+```py
 python3 mimic_record.py \
     --input_file /path/to/transcript.txt \
     --output_dir /path/to/save \
@@ -77,7 +77,7 @@ python3 mimic_record.py \
 
 #### 3. Merge JSON Files
 Combine personal recordings and datasets into a single JSON file:
-```bash
+```py
 python3 merge_jsons.py personal/train.json converted_clips/train.json \
     --output merged_train.json
 ```
@@ -89,7 +89,7 @@ python3 merge_jsons.py personal/train.json converted_clips/train.json \
 Before starting, add your **Comet ML API key** and **project name** to the `.env` file.
 
 To train the Conformer model:
-```bash
+```py
 python3 train.py \
     -g 4 \                    # Number of GPUs
     -w 8 \                    # Number of CPU workers
@@ -102,11 +102,12 @@ python3 train.py \
 
 ### Inference
 
-To transcribe audio files:
-```bash
+```py
 python3 engine.py \
     --checkpoint_path /path/to/checkpoint.ckpt \
 ```
+
+> See [notebook](https://github.com/LuluW8071/Conformer/blob/main/notebooks/Conformer_Inference_With_CTC_Decoder.ipynb) for inference examples.
 
 ---
 
@@ -142,7 +143,7 @@ python3 engine.py \
 | Mozilla Corpus | 25.29 | [:link:](https://drive.google.com/file/d/1b_ElF1ihnI1H4dTlGzAQQJZzgOt0jqiv/view?usp=drive_link) |
 
 > Expected WER with **CTC + KenLM** decoding: **<15%**.  
-> See [notebook](https://github.com/LuluW8071/Conformer/blob/main/notebooks/Conformer_Inference_With_CTC_Decoder.ipynb) for inference examples.
+
 
 ---
 
