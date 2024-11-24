@@ -7,7 +7,6 @@ from torchaudio.transforms import Resample
 from torchaudio.models.decoder import download_pretrained_files, ctc_decoder
 
 from dataset import get_featurizer
-from load_checkpoint import load_model
 
 # Constants for decoding
 LM_WEIGHT = 3.23
@@ -69,8 +68,8 @@ def main(args):
     Main function to launch the Gradio interface.
     """
     # Load ASR Conformer Model and set to eval mode
-    model = load_model(args.checkpoint_path)
-    model.eval()
+    model = torch.jit.load(args.checkpoint_path)
+    model.eval().to('cpu')  # Run on cpu
 
     # Load tokens and pre-trained language model
     with open(args.token_path, 'r') as f:
@@ -100,7 +99,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="ASR Model Inference Script")
 
-    parser.add_argument('--checkpoint_path', required=True, type=str, help='Path to the model checkpoint file')
+    parser.add_argument('--model_path', required=True, type=str, help='Path to the model checkpoint file')
     parser.add_argument('--token_path', default="assets/tokens.txt", type=str, help='Path to the tokens file')
     parser.add_argument('--share', action='store_true', help='Share the Gradio app publicly')
     args = parser.parse_args()
