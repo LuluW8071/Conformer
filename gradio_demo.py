@@ -35,8 +35,9 @@ def decode_emission(emission, tokens, files):
             lexicon=files.lexicon,
             tokens=tokens,
             lm=files.lm,
-            nbest=10,
-            beam_size=100,
+            nbest=5,
+            beam_size=50,
+            beam_threshold=10,
             lm_weight=LM_WEIGHT,
             word_score=WORD_SCORE,
         )
