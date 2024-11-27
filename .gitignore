@@ -14,3 +14,7 @@ data
 # Checkpoints
 saved_checkpoint
 freezed
+model
+
+# Ignore files
+*.wav

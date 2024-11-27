@@ -1,110 +1,155 @@
+import pyaudio
+import wave
+import math
+import time
+import struct
+import argparse
 import torch
 import torchaudio
-import argparse
-import gradio as gr
-
-from torchaudio.transforms import Resample
-from torchaudio.models.decoder import download_pretrained_files, ctc_decoder
-
 from dataset import get_featurizer
-
-# Constants for decoding
-LM_WEIGHT = 3.23
-WORD_SCORE = -0.26
+from torchaudio.models.decoder import ctc_decoder, download_pretrained_files
 
 
-def preprocess_audio(audio_file, featurizer, target_sample_rate=16000):
+class Recorder:
+    @staticmethod
+    def rms(frame):
+        """
+        Calculate the Root Mean Square (RMS) value of a frame for silence detection.
+        """
+        count = len(frame) // 2
+        format = f"{count}h"
+        shorts = struct.unpack(format, frame)
+
+        sum_squares = sum((sample * (1.0 / 32768.0)) ** 2 for sample in shorts)
+        rms = math.sqrt(sum_squares / count) * 1000
+        return rms
+
+    def __init__(self, sample_rate=16000, chunk=1024, silence_threshold=50, silence_duration=5):
+        self.chunk = chunk
+        self.sample_rate = sample_rate
+        self.silence_threshold = silence_threshold
+        self.silence_duration = silence_duration
+        self.p = pyaudio.PyAudio()
+        try:
+            self.stream = self.p.open(
+                format=pyaudio.paInt16,
+                channels=1,
+                rate=self.sample_rate,
+                input=True,
+                frames_per_buffer=self.chunk
+            )
+        except Exception as e:
+            print(f"Error initializing audio stream: {e}")
+            self.stream = None
+
+    def record(self):
+        """
+        Record audio until silence is detected for a certain duration.
+        """
+        if not self.stream:
+            raise RuntimeError("Audio stream is not initialized.")
+
+        print("Recording... Speak into the microphone.")
+        audio_frames = []
+        silence_start = None
+
+        while True:
+            data = self.stream.read(self.chunk, exception_on_overflow=False)
+            audio_frames.append(data)
+
+            # Detect silence
+            if self.rms(data) < self.silence_threshold:
+                if silence_start is None:
+                    silence_start = time.time()
+                elif time.time() - silence_start >= self.silence_duration:
+                    print("Silence detected. Stopping recording.")
+                    break
+            else:
+                silence_start = None
+
+        return audio_frames
+
+    def save(self, waveforms, filename="audio_temp.wav"):
+        """
+        Save the recorded audio to a WAV file.
+        """
+        try:
+            with wave.open(filename, "wb") as wf:
+                wf.setnchannels(1)
+                wf.setsampwidth(self.p.get_sample_size(pyaudio.paInt16))
+                wf.setframerate(self.sample_rate)
+                wf.writeframes(b"".join(waveforms))
+            print(f"Audio saved to {filename}")
+            return filename
+        except Exception as e:
+            raise RuntimeError(f"Error saving audio: {e}")
+
+
+class SpeechRecognitionEngine:
     """
-    Preprocess the audio: load, resample, and extract features.
+    ASR engine to transcribe recorded audio.
     """
-    try:
-        waveform, sample_rate = torchaudio.load(audio_file)
-        if sample_rate != target_sample_rate:
-            waveform = Resample(orig_freq=sample_rate, new_freq=target_sample_rate)(waveform)
-        return featurizer(waveform).permute(0, 2, 1)
-    except Exception as e:
-        raise ValueError(f"Error in preprocessing audio: {e}")
+    def __init__(self, model_file, token_path, ken_lm_file=None):
+        self.model = torch.jit.load(model_file)
+        self.model.eval().to('cpu')  # Ensure the model runs on CPU
+        self.featurizer = get_featurizer(16000)
 
+        # Load decoder files and tokens
+        files = download_pretrained_files("librispeech-4-gram")
+        # print(f"Loaded decoder files: {files}")
+        with open(token_path, 'r') as f:
+            tokens = f.read().splitlines()
+            
+        lm = files.lm if ken_lm_file is None else ken_lm_file
 
-def decode_emission(emission, tokens, files):
-    """
-    Decode emissions using a beam search decoder with a language model.
-    """
-    try:
-        beam_search_decoder = ctc_decoder(
+        self.decoder = ctc_decoder(
             lexicon=files.lexicon,
             tokens=tokens,
-            lm=files.lm,
+            lm=lm,
             nbest=10,
             beam_size=100,
-            lm_weight=LM_WEIGHT,
-            word_score=WORD_SCORE,
+            lm_weight=3.23,
+            word_score=-0.26,
         )
-        beam_search_result = beam_search_decoder(emission)
-        return " ".join(beam_search_result[0][0].words).strip()
-    except Exception as e:
-        raise ValueError(f"Error in decoding: {e}")
 
-
-def transcribe(audio_file, model, featurizer, tokens, files):
-    """
-    Transcribe an audio file using the ASR model and decoder.
-    """
-    try:
-        # Preprocess audio
-        waveform = preprocess_audio(audio_file, featurizer)
-        
-        # Get raw tensor emissions from the model
-        emission = model(waveform)
-        
-        # Decode emissions
-        return decode_emission(emission, tokens, files)
-    except Exception as e:
-        return f"Error processing audio: {e}"
+    def transcribe(self, filename):
+        """
+        Transcribe audio from a file using the ASR model.
+        """
+        try:
+            waveform, _ = torchaudio.load(filename)
+            mel = self.featurizer(waveform).permute(0, 2, 1)  # Prepare mel features
+            with torch.inference_mode():
+                out = self.model(mel)
+                results = self.decoder(out)
+                return " ".join(results[0][0].words).strip()
+        except Exception as e:
+            raise RuntimeError(f"Error during transcription: {e}")
 
 
 def main(args):
-    """
-    Main function to launch the Gradio interface.
-    """
-    # Load ASR Conformer Model and set to eval mode
-    model = torch.jit.load(args.checkpoint_path)
-    model.eval().to('cpu')  # Run on cpu
+    try:
+        # Initialize recorder and ASR engine
+        recorder = Recorder()
+        asr_engine = SpeechRecognitionEngine(args.model_file, args.token_path, args.ken_lm_file)
 
-    # Load tokens and pre-trained language model
-    with open(args.token_path, 'r') as f:
-        tokens = f.read().splitlines()
+        # Record audio
+        recorded_audio = recorder.record()
+        audio_file = recorder.save(recorded_audio, "audio_temp.wav")
 
-    files = download_pretrained_files("librispeech-4-gram")
-
-    # Create feature extractor
-    featurizer = get_featurizer()
-
-    # Define Gradio interface
-    def gradio_transcribe(audio_file):
-        return transcribe(audio_file, model, featurizer, tokens, files)
-
-    interface = gr.Interface(
-        fn=gradio_transcribe,
-        inputs=gr.Audio(sources="microphone", type="filepath", label="Speak into the microphone"),
-        outputs="text",
-        title="Conformer-Small ASR Model",
-        description=("Speak into the microphone, and the model will transcribe your speech."),
-    )
-
-    # Launch the Gradio app
-    interface.launch(share=args.share)
+        # Transcribe audio
+        transcript = asr_engine.transcribe(audio_file)
+        print("Transcription:")
+        print(transcript)
+    except Exception as e:
+        print(f"Error: {e}")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="ASR Model Inference Script")
-
-    parser.add_argument('--model_path', required=True, type=str, help='Path to the model checkpoint file')
-    parser.add_argument('--token_path', default="assets/tokens.txt", type=str, help='Path to the tokens file')
-    parser.add_argument('--share', action='store_true', help='Share the Gradio app publicly')
+    parser = argparse.ArgumentParser(description="ASR Demo: Record and Transcribe Audio")
+    parser.add_argument('--model_file', type=str, required=True, help='Path to the optimized ASR model.')
+    parser.add_argument('--token_path', type=str, default="assets/tokens.txt", help='Path to the tokens file.')
+    parser.add_argument('--ken_lm_file', type=str, default=None, help='Path to an optional KenLM file.')
     args = parser.parse_args()
 
-    try:
-        main(args)
-    except Exception as e:
-        raise ValueError(f"Fatal error: {e}")
+    main(args)
