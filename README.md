@@ -8,15 +8,15 @@
 
 ![Conformer](assets/conformer.png)
 
-This repository provides an implementation of the paper *__Conformer__: Convolution-augmented Transformer for Speech Recognition*. It includes training scripts including support for distributed GPU training using **Lightning AI** and web-app for inference using __Gradio__. 
+This repository provides an implementation of the paper *__Conformer__: Convolution-augmented Transformer for Speech Recognition*. It includes training scripts including support for distributed GPU training using **Lightning AI** and web-app for inference using __Gradio__ and __CTC-Decoder with KenLM__. 
 
 ## 📄 Paper and Blog References
 
-- [__Attention Is All You Need__](https://arxiv.org/pdf/1706.03762)
-- [__Conformer__: Convolution-augmented Transformer for Speech Recognition](https://arxiv.org/pdf/2005.08100)
-- [__Transformer-XL__: Attentive Language Models Beyond a Fixed-Length Context](https://arxiv.org/pdf/1901.02860)
-- [__KenLM__](https://kheafield.com/code/kenlm/)
-- [__Boosting Sequence Generation Performance with Beam Search Language Model Decoding__](https://towardsdatascience.com/boosting-your-sequence-generation-performance-with-beam-search-language-model-decoding-74ee64de435a)
+- [x] [__Attention Is All You Need__](https://arxiv.org/pdf/1706.03762)
+- [x] [__Conformer__: Convolution-augmented Transformer for Speech Recognition](https://arxiv.org/pdf/2005.08100)
+- [x] [__Transformer-XL__: Attentive Language Models Beyond a Fixed-Length Context](https://arxiv.org/pdf/1901.02860)
+- [x] [__KenLM__](https://kheafield.com/code/kenlm/)
+- [x] [__Boosting Sequence Generation Performance with Beam Search Language Model Decoding__](https://towardsdatascience.com/boosting-your-sequence-generation-performance-with-beam-search-language-model-decoding-74ee64de435a)
 
 ---
 
@@ -34,7 +34,7 @@ Before installing dependencies, ensure the following are installed:
 
 - **CUDA Toolkit** (For Training)
 - **PyTorch** (CPU or GPU version)  
-- **SOX**:
+- **SOX**
   ```bash
   sudo apt update
   sudo apt install sox libsox-fmt-all build-essential zlib1g-dev libbz2-dev liblzma-dev
@@ -99,11 +99,28 @@ python3 train.py \
     --checkpoint_path /path/to/checkpoint.ckpt  # Optional: Resume from a checkpoint
 ```
 
-### Inference
+### Exporting the Model
+In order to serialize the model allowing for better optimization to run in C++ level runtimes, export the PyTorch model using torchscript.
 
 ```py
-python3 engine.py \
-    --checkpoint_path /path/to/checkpoint.ckpt \
+python3 torchscript.py \
+    --model_checkpoint /path/to/checkpoint.ckpt \
+    --save_path /path/to/optimized_model.pt
+```
+
+### Inference
+##### Gradio Demo
+
+```py
+python3 gradio_demo.py \
+    --model_path /path/to/optimized_model.pt \
+    --share     # Optional: To share the Gradio app publicly
+```
+
+##### Web Flask Demo
+```py
+python3 app.py \
+    --model_path /path/to/optimized_model.pt
 ```
 
 > See [notebook](https://github.com/LuluW8071/Conformer/blob/main/notebooks/Conformer_Inference_With_CTC_Decoder.ipynb) for inference examples.
@@ -141,7 +158,7 @@ python3 engine.py \
 | LibriSpeech | 22.94    | [:link:](https://drive.google.com/file/d/1XcouMWSncUeNBvGZednuWYK1jdfKisCr/view?usp=drive_link) |
 | Mozilla Corpus | 25.29 | [:link:](https://drive.google.com/file/d/1b_ElF1ihnI1H4dTlGzAQQJZzgOt0jqiv/view?usp=drive_link) |
 
-> Expected WER with **CTC + KenLM** decoding: **~15%**.  
+> Expected WER with **CTC + KenLM** decoding: **~15%**.
 
 ---
 
