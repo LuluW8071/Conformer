@@ -11,3 +11,4 @@ soundfile
 sox
 gradio
 flashlight-text
+flask

@@ -1,0 +1,103 @@
+*,
+*::before,
+*::after {
+    font-family: 'Roboto', sans-serif;
+    box-sizing: border-box;
+}
+
+body,
+main {
+    margin: 0;
+    padding: 0;
+    min-width: 100%;
+    /* min-height: 100vh; */
+    text-align: center;
+    color: #fff;
+    background: #000;
+}
+
+button {
+    position: absolute;
+    left: 50%;
+    top: 45%;
+    width: 5em;
+    height: 2em;
+    margin-left: -2.5em;
+    margin-top: -1em;
+    z-index: 100;
+    padding: .25em .5em;
+    color: #fff;
+    background: #000;
+    border: 1px solid #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.15em;
+    font-weight: 200;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    transition: box-shadow .5s;
+}
+
+button:hover {
+    box-shadow: 0 0 30px 5px rgba(255, 255, 255, 0.75);
+}
+
+main {
+    position: absolute;
+    top: 30%;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    height: 70%;
+}
+
+main>div {
+    display: inline-block;
+    width: 1.5px;
+    height: 100px; 
+    top: 30%;
+    margin: 0 7px;
+    background: red;
+    transform: scaleY(.6);
+    opacity: .35;
+}
+
+main.error {
+    color: #f7451d;
+    min-width: 20em;
+    max-width: 30em;
+    margin: 0 auto;
+    white-space: pre-line;
+}
+
+#transcript {
+    position: absolute;
+    top: 55%;
+    width: 100vw;
+    padding-left: 20vw;
+    padding-right: 20vw;
+    font-size: x-medium;
+    color: #fff;
+}
+
+/* Add to your styles.css */
+#loadingAnimation {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5em;
+    color: #fff;
+    font-family: 'Roboto', sans-serif;
+    display: none;
+}
+
+#loadingAnimation.show {
+    display: block;
+    animation: fadeInOut 3s ease-in-out infinite;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+}
