@@ -1,3 +1,4 @@
+from torch import nn
 from Conformer import ConformerEncoder, LSTMDecoder
 
 

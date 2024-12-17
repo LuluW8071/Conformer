@@ -65,7 +65,7 @@ class CustomAudioDataset(Dataset):
 
             if spectrogram.shape[0] > 1:
                 raise Exception("dual channel, skipping audio file %s" % file_path)
-            if spectrogram.shape[2] > 4096 * 2:
+            if spectrogram.shape[2] > 4096 * 4:
                 raise Exception("spectrogram too big. size %s" % spectrogram.shape[2])
             if label_len == 0:
                 raise Exception("label len is zero... skipping %s" % file_path)

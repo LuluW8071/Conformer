@@ -6,7 +6,7 @@ import torch
 
 import torch.nn.functional as F
 import torch.optim as optim
-import torch import nn
+import torch.nn as nn
 
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor, EarlyStopping
 from pytorch_lightning.loggers import CometLogger
@@ -190,28 +190,25 @@ def main(args):
     checkpoint_callback = ModelCheckpoint(
         monitor="val_loss",
         dirpath="./saved_checkpoint/",
-        filename="Conformer-{epoch:02d}-{val_loss:.2f}-{val_wer:.2f}",
+        filename="Conformer-{epoch:02d}-{val_wer:.2f}",
         save_top_k=3,   # 3 Checkpoints
         mode="min",
     )
 
     # Trainer Instance
     trainer_args = {
-        "accelerator": device,
-        "devices": args.gpus,
-        "strategy": args.dist_backend if args.gpus > 1 else "auto",   # Distributed Backend for multi GPU training
-        "min_epochs": 1,
-        "max_epochs": args.epochs,
-        "precision": args.precision,
-        "check_val_every_n_epoch": 1,
-        "gradient_clip_val": 1.0,
-        "callbacks": [
-            LearningRateMonitor(logging_interval="epoch"),
-            EarlyStopping(monitor="val_loss", patience=5),  # Early stopping
-            checkpoint_callback,
-        ],
-        "logger": comet_logger,
-
+        'accelerator': args.device,                                     # Device to use for training
+        'devices': args.gpus,                                           # Number of GPUs to use for training
+        'min_epochs': 1,                                                # Minm. no. of epochs to run
+        'max_epochs': args.epochs,                                      # Maxm. no. of epochs to run                               
+        'precision': args.precision,                                    # Precision to use for training
+        'check_val_every_n_epoch': 1,                                   # No. of epochs to run validation
+        'gradient_clip_val': args.grad_clip,                            # Gradient norm clipping value
+        'accumulate_grad_batches': args.accumulate_grad,                # No. of batches to accumulate gradients over
+        'callbacks': [LearningRateMonitor(logging_interval='epoch'),    # Callbacks to use for training
+                      EarlyStopping(monitor="val_loss", patience=5),
+                      checkpoint_callback],
+        'logger': comet_logger,                                         # Logger to use for training
     }
 
     trainer = pl.Trainer(**trainer_args)
@@ -225,10 +222,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train ASR Model")
 
     # Train Device Hyperparameters
+    parser.add_argument('-d', '--device', default='cuda', type=str, help='device to use for training')
     parser.add_argument('-g', '--gpus', default=1, type=int, help='number of gpus per node')
     parser.add_argument('-w', '--num_workers', default=8, type=int, help='n data loading workers')
-    parser.add_argument('-db', '--dist_backend', default='ddp', type=str,
-                        help='which distributed backend to use for aggregating multi-gpu train')
+    parser.add_argument('-db', '--dist_backend', default='ddp', type=str, help='which distributed backend to use for aggregating multi-gpu train')
 
     # Train and Valid File
     parser.add_argument('--train_json', default=None, required=True, type=str, help='json file to load training data')                   
@@ -236,12 +233,13 @@ if __name__ == "__main__":
 
     # General Train Hyperparameters
     parser.add_argument('--epochs', default=50, type=int, help='number of total epochs to run')
-    parser.add_argument('--batch_size', default=32, type=int, help='size of batch')
-    parser.add_argument('-lr', '--learning_rate', default=4e-5, type=float, help='learning rate')
+    parser.add_argument('--batch_size', default=64, type=int, help='size of batch')
+    parser.add_argument('-lr','--learning_rate', default=5e-5, type=float, help='learning rate')
     parser.add_argument('--precision', default='16-mixed', type=str, help='precision')
-    
-    # Checkpoint path
-    parser.add_argument('--checkpoint_path', default=None, type=str, help='path to a checkpoint file to resume training')
+    parser.add_argument('--checkpoint_path', default=None, type=str, help='path of checkpoint file to resume training')
+    parser.add_argument('-gc', '--grad_clip', default=0.5, type=float, help='gradient norm clipping value')
+    parser.add_argument('-ag', '--accumulate_grad', default=4, type=int, help='number of batches to accumulate gradients over')
+
 
     args = parser.parse_args()
     main(args)
