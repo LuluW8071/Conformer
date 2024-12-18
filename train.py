@@ -40,8 +40,8 @@ class ASRTrainer(pl.LightningModule):
         # Precompute sync_dist for distributed GPUs train
         self.sync_dist = True if args.gpus > 1 else False
 
-    def forward(self, x):
-        return self.model(x)
+    def forward(self, x, mask):
+        return self.model(x, mask)
 
     def configure_optimizers(self):
         optimizer = optim.AdamW(
@@ -65,10 +65,10 @@ class ASRTrainer(pl.LightningModule):
         return [optimizer], [scheduler]
 
     def _common_step(self, batch, batch_idx):
-        spectrograms, labels, input_lengths, label_lengths, _ = batch
+        spectrograms, labels, input_lengths, label_lengths, mask = batch
 
-        # Directly calls forward method of conformer and pass spectrograms
-        output = self(spectrograms)
+        # Directly calls forward method of conformer and pass spectrograms and mask
+        output = self(spectrograms, mask)
         output = F.log_softmax(output, dim=-1).transpose(0, 1)
 
         # Compute CTC loss

@@ -8,7 +8,7 @@ class ConformerASR(nn.Module):
         self.encoder = ConformerEncoder(**encoder_params)
         self.decoder = LSTMDecoder(**decoder_params)
 
-    def forward(self, x):
-        encoder_output = self.encoder(x)
+    def forward(self, x, mask=None):
+        encoder_output = self.encoder(x, mask)
         decoder_output = self.decoder(encoder_output)
         return decoder_output
