@@ -69,7 +69,7 @@ def main(args):
     Main function to launch the Gradio interface.
     """
     # Load ASR Conformer Model and set to eval mode
-    model = torch.jit.load(args.checkpoint_path)
+    model = torch.jit.load(args.model_path)
     model.eval().to('cpu')  # Run on cpu
 
     # Load tokens and pre-trained language model
