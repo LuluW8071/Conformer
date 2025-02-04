@@ -16,7 +16,7 @@ from torchmetrics.text import WordErrorRate, CharErrorRate
 from dotenv import load_dotenv
 load_dotenv()
 
-from dataset import SpeechDataModule
+from dataloader import SpeechDataModule
 from model import ConformerASR
 from utils import GreedyDecoder
 
@@ -190,7 +190,7 @@ def main(args):
     directory = "data"
     if not os.path.exists(directory):
         os.makedirs(directory)
-        
+
     data_module = SpeechDataModule(
         batch_size=args.batch_size,
         train_url=[
@@ -257,12 +257,14 @@ def main(args):
         'precision': args.precision,                                    # Precision to use for training
         'check_val_every_n_epoch': 1,                                   # No. of epochs to run validation
         'gradient_clip_val': args.grad_clip,                            # Gradient norm clipping value
-        'accumulate_grad_batches': args.accumulate_grad,                # No. of batches to accumulate gradients over
         'callbacks': [LearningRateMonitor(logging_interval='epoch'),    # Callbacks to use for training
-                      EarlyStopping(monitor="val_loss", patience=5),
+                      EarlyStopping(monitor="val_loss", patience=3),
                       checkpoint_callback],
         'logger': comet_logger,                                         # Logger to use for training
     }
+
+    if args.accumulate_grad > 1:
+        trainer_args['accumulate_grad_batches'] = args.accumulate_grad
 
     trainer = pl.Trainer(**trainer_args)
 
@@ -286,12 +288,11 @@ if __name__ == "__main__":
     # General Train Hyperparameters
     parser.add_argument('--epochs', default=50, type=int, help='number of total epochs to run')
     parser.add_argument('--batch_size', default=64, type=int, help='size of batch')
-    parser.add_argument('-lr','--learning_rate', default=2e-4, type=float, help='learning rate')
+    parser.add_argument('-lr','--learning_rate', default=5e-5, type=float, help='learning rate')
     parser.add_argument('--precision', default='16-mixed', type=str, help='precision')
     parser.add_argument('--checkpoint_path', default=None, type=str, help='path of checkpoint file to resume training')
-    parser.add_argument('-gc', '--grad_clip', default=0.5, type=float, help='gradient norm clipping value')
-    parser.add_argument('-ag', '--accumulate_grad', default=4, type=int, help='number of batches to accumulate gradients over')
-
+    parser.add_argument('-gc', '--grad_clip', default=1.0, type=float, help='gradient norm clipping value')
+    parser.add_argument('-ag', '--accumulate_grad', default=1, type=int, help='number of batches to accumulate gradients over')
 
     args = parser.parse_args()
     main(args)
