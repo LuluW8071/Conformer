@@ -187,6 +187,10 @@ class ASRTrainer(pl.LightningModule):
 def main(args):
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
+    directory = "data"
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+        
     data_module = SpeechDataModule(
         batch_size=args.batch_size,
         train_url=[
