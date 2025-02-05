@@ -6,21 +6,10 @@ import torch
 import torch.nn as nn
 
 from collections import OrderedDict
-from Conformer import ConformerEncoder, LSTMDecoder
+from model import ConformerASR
 
-# Conformer Model Class
-class ConformerASR(nn.Module):
-    def __init__(self, encoder_params, decoder_params):
-        super(ConformerASR, self).__init__()
-        self.encoder = ConformerEncoder(**encoder_params)
-        self.decoder = LSTMDecoder(**decoder_params)
-
-    def forward(self, x):
-        encoder_output = self.encoder(x)
-        decoder_output = self.decoder(encoder_output)
-        return decoder_output
-
-# Hyper parameters of trained_model (conformer small)
+# ===========================================================
+# NOTE: Hyper parameters of trained_model (conformer small)
 encoder_params = {
     'd_input': 80,       # Input features: n-mels
     'd_model': 144,      # Encoder Dims
@@ -38,7 +27,7 @@ decoder_params = {
     'num_layers': 1,     # Deocder Layer
     'num_classes': 29,   # Output Classes
 }
-
+# ===========================================================
 
 def trace(model):
     """
@@ -73,11 +62,19 @@ def main(args):
 
     # Separate encoder and decoder state dictionaries
     for k, v in model_state_dict.items():
+         # For Optimized model
         if k.startswith('model._orig_mod.encoder.'):
             name = k.replace('model._orig_mod.encoder.', '')
             encoder_state_dict[name] = v
         elif k.startswith('model._orig_mod.decoder.'):
             name = k.replace('model._orig_mod.decoder.', '')
+            decoder_state_dict[name] = v
+        # For Normal model
+        elif k.startswith('model.encoder.'):
+            name = k.replace('model.encoder.', '')
+            encoder_state_dict[name] = v
+        elif k.startswith('model.decoder.'):
+            name = k.replace('model.decoder.', '')
             decoder_state_dict[name] = v
 
     # Load state dictionaries into the model
