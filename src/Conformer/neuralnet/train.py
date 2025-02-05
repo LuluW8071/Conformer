@@ -26,12 +26,12 @@ class ASRTrainer(pl.LightningModule):
         self.model = model
         self.args = args
 
+        # Metrics
         self.losses = []
         self.val_cer = []
         self.val_wer = []
-
-        # Metrics
-        # NOTE: Comment CER since validation phase takes a lot of time to compute error for each character
+        
+        # NOTE: CER is computed only for test_dataloader as it is time and resource consuming for every validation step
         self.char_error_rate = CharErrorRate()
         self.word_error_rate = WordErrorRate()
 
@@ -56,15 +56,15 @@ class ASRTrainer(pl.LightningModule):
             'scheduler': torch.optim.lr_scheduler.ReduceLROnPlateau(
                 optimizer, 
                 mode='min', 
-                factor=0.7,           # Reduce LR by multiplying it by 0.8
+                factor=0.8,           # Reduce LR by multiplying it by 0.8
                 patience=1,           # No. of epochs to wait before reducing LR
-                threshold=5e-2,       # Minimum change in val_loss to qualify as improvement
+                threshold=4e-2,       # Minimum change in val_loss to qualify as improvement
                 threshold_mode='rel', # Relative threshold (e.g., 0.1% change)
-                min_lr=1e-5           # Minm. LR to stop reducing
+                min_lr=3e-6           # Minm. LR to stop reducing
             ),
-            'monitor': 'val_loss',    # Metric to monitor
-            'interval': 'epoch',      # Scheduler step every epoch
-            'frequency': 1            # Apply scheduler after every epoch
+            'monitor': 'val_loss',
+            'interval': 'epoch',
+            'frequency': 1
         }
 
         return [optimizer], [scheduler]
@@ -103,9 +103,9 @@ class ASRTrainer(pl.LightningModule):
         decoded_preds, decoded_targets = GreedyDecoder(y_pred.transpose(0, 1), labels, label_lengths)
 
         # Log some predictions during validation phase in CometML
-        # NOTE: If validation set is too less, set batch_idx % 20 or any other condition  
+        # NOTE: If validation set is too less, set batch_idx % 200 or any other condition  
         # Log final predictions
-        if batch_idx % 1500 == 0:
+        if batch_idx % 50 == 0:
             self._text_logger(decoded_preds, decoded_targets)
 
         # Calculate metrics
@@ -228,9 +228,9 @@ def main(args):
         "num_classes": 29,      # Output Classes
     }
 
-    # Optimize Model Instance for faster training
+    # Optimize Model Instance for faster training 
     model = ConformerASR(encoder_params, decoder_params)
-    # model = torch.compile(model)
+    # model = torch.compile(model)      # Model compilation got slower instead
 
     speech_trainer = ASRTrainer(model=model, args=args)
 

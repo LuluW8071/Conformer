@@ -2,7 +2,7 @@ torch
 torchaudio
 torchvision
 lightning
-pyaudio
+# pyaudio
 numpy
 torchmetrics
 comet_ml

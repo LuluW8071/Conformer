@@ -64,7 +64,7 @@ class TextTransform:
         # Cache for processed characters
         self._char_cache = {}
 
-    def _process_char(self, c: str) -> int:
+    def _process_char(self, c):
         """Process a single character with caching"""
         if c in self._char_cache:
             return self._char_cache[c]
@@ -76,7 +76,7 @@ class TextTransform:
         self._char_cache[c] = result
         return result
 
-    def text_to_int(self, text: str) -> List[int]:
+    def text_to_int(self, text):
         """Optimized conversion of text to integer sequence"""
         return [self._process_char(c) for c in text.lower()]
 
@@ -85,13 +85,7 @@ class TextTransform:
         return "".join(self.index_map[i] for i in labels).replace("<SPACE>", " ")
 
 
-def GreedyDecoder(
-    output: torch.Tensor,
-    labels: torch.Tensor,
-    label_lengths: torch.Tensor,
-    blank_label: int = 28,
-    collapse_repeated: bool = True,
-) -> Tuple[List[str], List[str]]:
+def GreedyDecoder(output, labels, label_lengths, blank_label = 28, collapse_repeated = True): 
     """Optimized greedy decoder"""
     arg_maxes = torch.argmax(output, dim=2)
     decodes = []
