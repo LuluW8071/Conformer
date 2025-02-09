@@ -30,12 +30,15 @@ class SpeechDataModule(pl.LightningDataModule):
         combined_train_dataset = ConcatDataset([LibriSpeechDataset(ConcatDataset(train_librispeech)), train_mozilla])
         combined_valid_dataset = ConcatDataset([LibriSpeechDataset(ConcatDataset(valid_librispeech)), valid_mozilla])
 
+        # Using Librispeech test corpus for benchmarking
+        test_dataset = ConcatDataset([LibriSpeechDataset(ConcatDataset(valid_librispeech))])
+
         self.train_dataset = combined_train_dataset
         self.valid_dataset = combined_valid_dataset
-        self.test_dataset = valid_librispeech
+        self.test_dataset = test_dataset
 
     def data_processing(self, data):
-        spectrograms, labels, input_lengths, label_lengths = [],[],[],[]
+        spectrograms, labels, input_lengths, label_lengths = [], [], [], []
         for (spectrogram, label, label_length) in data:
             if spectrogram is None:
                 continue
