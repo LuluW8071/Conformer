@@ -51,9 +51,9 @@ class BaseSpeechDataset(Dataset):
 
             if spectrogram.shape[0] > 1:
                 raise Exception(f"dual channel, skipping audio file {file_path}")
-            # Accept audio samples of only ~20 sec
+            # Accept audio samples of only ~25 sec
             # NOTE: higher duration consumes more memory and is slower to train
-            if spectrogram.shape[2] > 2048:
+            if spectrogram.shape[2] > 2500:
                 raise Exception(f"spectrogram too big. size {spectrogram.shape[2]}")
             if label_len == 0:
                 raise Exception(f"label len is zero... skipping {file_path}")
