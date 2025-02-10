@@ -28,7 +28,6 @@ class ASRTrainer(pl.LightningModule):
 
         # Metrics
         self.losses = []
-        self.val_cer = []
         self.val_wer = []
         
         # NOTE: CER is computed only for test_dataloader as it is time and resource consuming for every validation step
@@ -105,11 +104,11 @@ class ASRTrainer(pl.LightningModule):
         # Log some predictions during validation phase in CometML
         # NOTE: If validation set is too less, set batch_idx % 200 or any other condition  
         # Log final predictions
-        if batch_idx % 50 == 0:
+        if batch_idx % 1000 == 0:
             self._text_logger(decoded_preds, decoded_targets)
 
         # Calculate metrics
-        wer_batch = self.word_error_rate(decoded_preds, decoded_targets)
+        wer_batch = self.word_error_rate(decoded_preds, decoded_targets, "Validation")
         self.val_wer.append(wer_batch)
         return {"val_loss": loss}
 
@@ -149,7 +148,7 @@ class ASRTrainer(pl.LightningModule):
         
         # Log final predictions
         if batch_idx % 5 == 0:
-            self._text_logger(decoded_preds, decoded_targets)
+            self._text_logger(decoded_preds, decoded_targets, "Test")
 
         # Calculate metrics
         cer_batch = self.char_error_rate(decoded_preds, decoded_targets)
@@ -175,13 +174,13 @@ class ASRTrainer(pl.LightningModule):
 
         return metrics
 
-    def _text_logger(self, decoded_preds, decoded_targets):
+    def _text_logger(self, decoded_preds, decoded_targets, phase):
         formatted_log = []
 
         for i in range(len(decoded_targets)):
             formatted_log.append(f"{decoded_targets[i]}\n{decoded_preds[i]}")
         log_text = "\n\n".join(formatted_log)
-        self.logger.experiment.log_text(text=log_text)
+        self.logger.experiment.log_text(text=log_text, metadata={"Phase": phase})
 
 
 def main(args):
@@ -230,7 +229,8 @@ def main(args):
 
     # Optimize Model Instance for faster training 
     model = ConformerASR(encoder_params, decoder_params)
-    # model = torch.compile(model)      # Model compilation got slower instead
+    # NOTE: Commented out since model compilation got slower instead
+    # model = torch.compile(model)      
 
     speech_trainer = ASRTrainer(model=model, args=args)
 
@@ -243,7 +243,7 @@ def main(args):
     checkpoint_callback = ModelCheckpoint(
         monitor="val_loss",
         dirpath="./saved_checkpoint/",
-        filename="Conformer-{epoch:02d}-{val_wer:.2f}",
+        filename="Conformer-{epoch:02d}-{val_wer:.3f}",
         save_top_k=3,   # 3 Checkpoints
         mode="min",
     )
@@ -271,6 +271,7 @@ def main(args):
     # Train and Validate
     trainer.fit(speech_trainer, data_module, ckpt_path=args.checkpoint_path)
     trainer.validate(speech_trainer, data_module)
+    trainer.fit(speech_trainer, data_module)
 
 
 if __name__ == "__main__":
@@ -288,7 +289,7 @@ if __name__ == "__main__":
     # General Train Hyperparameters
     parser.add_argument('--epochs', default=50, type=int, help='number of total epochs to run')
     parser.add_argument('--batch_size', default=64, type=int, help='size of batch')
-    parser.add_argument('-lr','--learning_rate', default=5e-5, type=float, help='learning rate')
+    parser.add_argument('-lr','--learning_rate', default=1e-4, type=float, help='learning rate')
     parser.add_argument('--precision', default='16-mixed', type=str, help='precision')
     parser.add_argument('--checkpoint_path', default=None, type=str, help='path of checkpoint file to resume training')
     parser.add_argument('-gc', '--grad_clip', default=1.0, type=float, help='gradient norm clipping value')
