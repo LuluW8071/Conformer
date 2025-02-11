@@ -157,6 +157,7 @@ python3 app.py \
 |------------|-----------|------------|
 | LibriSpeech | 22.94    | [:link:](https://drive.google.com/file/d/1XcouMWSncUeNBvGZednuWYK1jdfKisCr/view?usp=drive_link) |
 | Mozilla Corpus | 25.29 | [:link:](https://drive.google.com/file/d/1b_ElF1ihnI1H4dTlGzAQQJZzgOt0jqiv/view?usp=drive_link) |
+| Mozilla Corpus + LibriSpeech | 22.94    | ![Status](https://img.shields.io/badge/status-inprogress-yellow.svg) |
 
 > Expected WER with **CTC + KenLM** decoding: **~15%**.
 
