@@ -105,10 +105,10 @@ class ASRTrainer(pl.LightningModule):
         # NOTE: If validation set is too less, set batch_idx % 200 or any other condition  
         # Log final predictions
         if batch_idx % 1000 == 0:
-            self._text_logger(decoded_preds, decoded_targets)
+            self._text_logger(decoded_preds, decoded_targets, "Validation")
 
         # Calculate metrics
-        wer_batch = self.word_error_rate(decoded_preds, decoded_targets, "Validation")
+        wer_batch = self.word_error_rate(decoded_preds, decoded_targets)
         self.val_wer.append(wer_batch)
         return {"val_loss": loss}
 
