@@ -228,15 +228,14 @@ def main(args):
     }
 
     # Optimize Model Instance for faster training 
-    model = ConformerASR(encoder_params, decoder_params)
-    # NOTE: Commented out since model compilation got slower instead
-    # model = torch.compile(model)      
+    model = ConformerASR(encoder_params, decoder_params)    
 
     speech_trainer = ASRTrainer(model=model, args=args)
 
     # NOTE: Comet Logger
     comet_logger = CometLogger(
-        api_key=os.getenv("API_KEY"), project_name=os.getenv("PROJECT_NAME")
+        api_key=os.getenv("API_KEY"),
+        project=os.getenv("PROJECT_NAME")
     )
 
     # NOTE: Define Trainer callbacks
@@ -256,6 +255,7 @@ def main(args):
         'max_epochs': args.epochs,                                      # Maxm. no. of epochs to run                               
         'precision': args.precision,                                    # Precision to use for training
         'check_val_every_n_epoch': 1,                                   # No. of epochs to run validation
+        'accumulate_grad_batches': args.accumulate_grad,                # Gradient Accumulation
         'gradient_clip_val': args.grad_clip,                            # Gradient norm clipping value
         'callbacks': [LearningRateMonitor(logging_interval='epoch'),    # Callbacks to use for training
                       EarlyStopping(monitor="val_loss", patience=3),
@@ -263,8 +263,8 @@ def main(args):
         'logger': comet_logger,                                         # Logger to use for training
     }
 
-    if args.accumulate_grad > 1:
-        trainer_args['accumulate_grad_batches'] = args.accumulate_grad
+    if args.gpus > 1:
+        trainer_args['strategy'] = args.dist_backend
 
     trainer = pl.Trainer(**trainer_args)
 
@@ -280,7 +280,7 @@ if __name__ == "__main__":
     # Train Device Hyperparameters
     parser.add_argument('-g', '--gpus', default=1, type=int, help='number of gpus per node')
     parser.add_argument('-w', '--num_workers', default=8, type=int, help='n data loading workers')
-    parser.add_argument('-db', '--dist_backend', default='ddp', type=str, help='which distributed backend to use for aggregating multi-gpu train')
+    parser.add_argument('-db', '--dist_backend', default='deepspeed_stage_2', type=str, help='which distributed backend to use for aggregating multi-gpu train')
 
     # Train and Valid File
     parser.add_argument('--train_json', default=None, required=True, type=str, help='json file to load training data')                   
