@@ -6,10 +6,10 @@ import gradio as gr
 from torchaudio.transforms import Resample
 from torchaudio.models.decoder import download_pretrained_files, ctc_decoder
 
-from dataset import get_featurizer
+from src.Conformer import get_featurizer
 
 # Constants for decoding
-LM_WEIGHT = 3.23
+LM_WEIGHT = 1.23
 WORD_SCORE = -0.26
 
 
@@ -35,11 +35,12 @@ def decode_emission(emission, tokens, files):
             lexicon=files.lexicon,
             tokens=tokens,
             lm=files.lm,
-            nbest=5,
+            nbest=1,
             beam_size=50,
-            beam_threshold=10,
-            lm_weight=LM_WEIGHT,
-            word_score=WORD_SCORE,
+            beam_threshold=25,
+            beam_size_token=15,
+            lm_weight=1.23,
+            word_score=-0.26,
         )
         beam_search_result = beam_search_decoder(emission)
         return " ".join(beam_search_result[0][0].words).strip()
