@@ -140,7 +140,7 @@ python3 app.py \
 
 ---
 
-### Results
+### Experiment Results
 
 #### Loss Curves
 
@@ -148,18 +148,33 @@ python3 app.py \
 |-------------|--------------------------------------|
 | ![Libri Loss](assets/libri_loss.png) | ![Mozilla Loss](assets/mozilla_corpus_loss.png) |
 
-#### Word Error Rate (WER)
+| Combined Corpus | 
+|-------------|
+| ![Libri Loss](assets/combined_corpus_loss.png) |    
+
+#### Greedy Decoding
 
 > [!NOTE]
 >The model trained on the Mozilla Corpus dataset shows a slightly higher WER compared to the LibriSpeech dataset. However, it's important to note that the Mozilla validation was conducted on a dataset 15 times larger than the LibriSpeech validation set.
 
-| Dataset    | WER (%)   | Model Link |
-|------------|-----------|------------|
-| LibriSpeech | 22.94    | [:link:](https://drive.google.com/file/d/1XcouMWSncUeNBvGZednuWYK1jdfKisCr/view?usp=drive_link) |
-| Mozilla Corpus | 25.29 | [:link:](https://drive.google.com/file/d/1b_ElF1ihnI1H4dTlGzAQQJZzgOt0jqiv/view?usp=drive_link) |
-| Mozilla Corpus + LibriSpeech | 22.94    | ![Status](https://img.shields.io/badge/status-inprogress-yellow.svg) |
+Exp. No | Dataset    | Greedy WER (%)   | Model Link |
+|----|--------|-----------|------------|
+|1. | LibriSpeech | 22.94    | [:link:](https://drive.google.com/file/d/1XcouMWSncUeNBvGZednuWYK1jdfKisCr/view?usp=drive_link) |
+|2. | Mozilla Corpus + Personal Records | 25.29 | [:link:](https://drive.google.com/file/d/1b_ElF1ihnI1H4dTlGzAQQJZzgOt0jqiv/view?usp=drive_link) |
+|3. |Mozilla Corpus + Personal Records + LibriSpeech | 28.49    | ![Status](https://img.shields.io/badge/status-inprogress-yellow.svg) |
 
-> Expected WER with **CTC + KenLM** decoding: **~15%**.
+#### Beam Search Decoding + 4-gram Language Model 
+> Results from Experiment 3 using Beam Search Decoding with a 4-gram Language Model
+
+| Decoding Parameters                                                                                         | Dataset       | Avg WER (%) | Avg CER (%) |
+|-------------------------------------------------------------------------------------------------------------|---------------|-------------|-------------|
+| Beam Size: _50_<br>Beam Threshold: _10_<br>Beam Size Token: _—_<br>LM Weight: _3.23_<br>Word Score: _-0.26_ | test-clean    | 12.80       | —           |
+|                                                                                                             | test-other    | 24.90       | —           |
+| Beam Size: _25_<br>Beam Threshold: _15_<br>Beam Size Token: _10_<br>LM Weight: _1.23_<br>Word Score: _-0.26_ | test-clean    | 9.94        | 4.19        |
+|                                                                                                             | test-other    | 21.69       | 11.02       |
+| **Beam Size: _50_<br>Beam Threshold: _20_<br>Beam Size Token: _15_<br>LM Weight: _1.23_<br>Word Score: _-0.26_** | **test-clean** | **9.46**     | **3.93**     |
+|                                                                                                             | **test-other** | **20.84**    | **10.40**    |
+
 
 ---
 
