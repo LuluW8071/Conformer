@@ -22,12 +22,14 @@ class SpeechRecognitionEngine:
             lexicon=files.lexicon,
             tokens=tokens,
             lm=files.lm,
-            nbest=5,
-            beam_size=50,
-            beam_threshold=10,
-            lm_weight=3.23,
+            nbest=1,
+            beam_size=500,
+            beam_threshold=100,
+            beam_size_token = 30,
+            lm_weight=1.23,
             word_score=-0.26,
         )
+
         print("Loaded beam search with Ken LM")
 
 
@@ -45,3 +47,21 @@ class SpeechRecognitionEngine:
                 return " ".join(results[0][0].words).strip()
         except Exception as e:
             raise RuntimeError(f"Error during transcription: {e}")
+
+
+class GreedyCTCDecoder(torch.nn.Module):
+    def __init__(self, labels, blank=0):
+        super().__init__()
+        self.labels = labels
+        self.blank = blank
+
+    def forward(self, emission: torch.Tensor) -> str:
+        """Decode the emission tensor to a string."""
+        indices = torch.argmax(emission, dim=-1)  # [num_seq,]
+        indices = torch.unique_consecutive(indices, dim=-1)
+        indices = [i for i in indices if i != self.blank]
+
+        # Join the decoded indices into a string and replace "-" with no space and "|" with spaces
+        joined = "".join([self.labels[i] for i in indices])
+        return joined.replace("-", "").replace("|", " ").strip().split()
+
