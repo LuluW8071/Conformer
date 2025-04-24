@@ -1,28 +1,38 @@
-# Conformer: Convolution-augmented Transformer for Speech Recognition
+# Conformer: Convolution-Augmented Transformer for Speech Recognition
 
 <div align="center">
-
-![Status](https://img.shields.io/badge/status-completed-green.svg) ![License](https://img.shields.io/github/license/LuluW8071/Conformer) ![Open Issues](https://img.shields.io/github/issues/LuluW8071/Conformer) ![Repo Size](https://img.shields.io/github/repo-size/LuluW8071/Conformer) ![Last Commit](https://img.shields.io/github/last-commit/LuluW8071/Conformer)
-
+  <img src="https://img.shields.io/badge/status-completed-green.svg" />
+  <img src="https://img.shields.io/github/license/LuluW8071/Conformer" />
+  <img src="https://img.shields.io/github/issues/LuluW8071/Conformer" />
+  <img src="https://img.shields.io/github/repo-size/LuluW8071/Conformer" />
+  <img src="https://img.shields.io/github/last-commit/LuluW8071/Conformer" />
 </div>
 
-![Conformer](assets/conformer.png)
+<p align="center">
+  <img src="assets/conformer.png" width="80%" alt="Conformer Architecture">
+</p>
 
-This repository provides an implementation of the paper *__Conformer__: Convolution-augmented Transformer for Speech Recognition*. It includes training scripts including support for distributed GPU training using **Lightning AI** and web-app for inference using __Gradio__ and __CTC-Decoder with KenLM__. 
+This repository contains a complete implementation of the [**Conformer**](https://arxiv.org/abs/2005.08100): Convolution-Augmented Transformer for Speech Recognition. It includes:
 
-## 📄 Paper and Blog References
-
-- [x] [__Attention Is All You Need__](https://arxiv.org/pdf/1706.03762)
-- [x] [__Conformer__: Convolution-augmented Transformer for Speech Recognition](https://arxiv.org/pdf/2005.08100)
-- [x] [__Transformer-XL__: Attentive Language Models Beyond a Fixed-Length Context](https://arxiv.org/pdf/1901.02860)
-- [x] [__KenLM__](https://kheafield.com/code/kenlm/)
-- [x] [__Boosting Sequence Generation Performance with Beam Search Language Model Decoding__](https://towardsdatascience.com/boosting-your-sequence-generation-performance-with-beam-search-language-model-decoding-74ee64de435a)
+- 🚀 Efficient training pipeline (with Lightning)
+- 🌐 Web inference demo (Gradio + Flask)
+- 🔤 Beam search decoding with KenLM
 
 ---
 
-## Installation
+## 📚 References
 
-### 1. Clone the Repository
+- [Attention Is All You Need](https://arxiv.org/pdf/1706.03762)
+- [Conformer: Convolution-augmented Transformer](https://arxiv.org/pdf/2005.08100)
+- [Transformer-XL](https://arxiv.org/pdf/1901.02860)
+- [KenLM](https://kheafield.com/code/kenlm/)
+- [Beam Search + LM Decoding](https://towardsdatascience.com/boosting-your-sequence-generation-performance-with-beam-search-language-model-decoding-74ee64de435a)
+
+---
+
+## 🛠 Installation
+
+### 1. Clone & Setup
 ```bash
 git clone https://github.com/LuluW8071/Conformer.git
 cd Conformer
@@ -30,30 +40,26 @@ cd Conformer
 
 ### 2. Install Dependencies
 
-Before installing dependencies, ensure the following are installed:
+First, install system-level requirements:
 
-- **CUDA Toolkit** (For Training)
-- **PyTorch** (CPU or GPU version)  
-- **SOX**
-  ```bash
-  sudo apt update
-  sudo apt install sox libsox-fmt-all build-essential zlib1g-dev libbz2-dev liblzma-dev
-  ```
+```bash
+sudo apt update
+sudo apt install sox libsox-fmt-all build-essential zlib1g-dev libbz2-dev liblzma-dev
+```
 
-Install the remaining dependencies:
+Then Python packages:
 ```bash
 pip install -r requirements.txt
 ```
 
+Ensure __CUDA + PyTorch__ are correctly set up for training.
+
 ---
 
-## Usage
+## 📁 Data Preparation
 
-### Audio Preprocessing
-
-#### 1. Common Voice Conversion
-To preprocess the Common Voice dataset:
-```py
+### 🔊 1. Common Voice Conversion
+```bash
 python3 common_voice.py \
     --file_path /path/to/validated.tsv \
     --save_json_path converted_clips \
@@ -61,130 +67,142 @@ python3 common_voice.py \
     --percent 10
 ```
 
-#### 2. Personal Recordings
-To record your own voice, use [__Mimic Record Studio__](https://github.com/MycroftAI/mimic-recording-studio) and prepare it for training :
+> _**LibriSpeech** ASR corpus is automatically downloaded._
 
-```py
+### 🎙️ 2. Personal Recordings via [Mimic Record Studio](https://github.com/MycroftAI/mimic-recording-studio)
+
+> [!IMPORTANT]
+> **Recommended:** At least 1–2 hours of personal recordings.Original audio is augmented (e.g., noise, pitch, speed) to boost variation in recorded corpus and improve model robustness on your voice.
+
+```bash
 python3 mimic_record.py \
     --input_file /path/to/transcript.txt \
-    --output_dir /path/to/save \
-    --percent 20 \
-    --upsample 5  # Duplicate 5 times in train json only
+    --output_dir /path/to/save
 ```
 
-> **Note**: The `--upsample` flag duplicates train json only to increase sample size.
-
-#### 3. Merge JSON Files
-Combine personal recordings and datasets into a single JSON file:
-```py
+### 🧩 3. Merge JSON Files
+```bash
 python3 merge_jsons.py personal/train.json converted_clips/train.json \
     --output merged_train.json
 ```
-> Perform same operation for validation json file.
----
 
-### Training
+> Repeat for validation files.
 
-Before starting, add your **Comet ML API key** and **project name** to the `.env` file.
+## 🏋️‍♀️ Training
 
-To train the Conformer model:
-```py
+Add your Comet ML API key and project to `.env`.
+
+```bash
 python3 train.py \
     -g 4 \                    # Number of GPUs
-    -w 8 \                    # Number of CPU workers
-    --epochs 100 \            # Number of epochs
+    -w 8 \                    # CPU workers
+    --epochs 100 \            # Training epochs
     --batch_size 32 \         # Batch size
     -lr 4e-5 \                # Learning rate
-    --precision 16-mixed \    # Mixed precision training
-    --checkpoint_path /path/to/checkpoint.ckpt  # Optional: Resume from a checkpoint
+    --precision 16-mixed \    # Enable mixed precision
+    --checkpoint_path /path/to/checkpoint.ckpt  # (Optional) Resume training
 ```
 
-### Exporting the Model
-In order to serialize the model allowing for better optimization to run in C++ level runtimes, export the PyTorch model using torchscript.
+## 📦 Model Export
 
-```py
+Export to TorchScript for optimized inference:
+```bash
 python3 torchscript.py \
     --model_checkpoint /path/to/checkpoint.ckpt \
-    --save_path /path/to/optimized_model.pt
+    --save_path model
 ```
 
-### Inference
-##### Gradio Demo
+## 🧪 Inference
 
-```py
+### Gradio Demo
+```bash
 python3 gradio_demo.py \
     --model_path /path/to/optimized_model.pt \
-    --share     # Optional: To share the Gradio app publicly
+    --share
 ```
 
-##### Web Flask Demo
-```py
+### Flask Web App
+```bash
 python3 app.py \
     --model_path /path/to/optimized_model.pt
 ```
 
-> See [notebook](https://github.com/LuluW8071/Conformer/blob/main/notebooks/Conformer_Inference_With_CTC_Decoder.ipynb) for inference examples.
+> 🔎 See the [Jupyter notebook](notebooks/Conformer_Inference_With_CTC_Decoder.ipynb) for interactive inference examples.
 
 ---
 
-## Experiment Details
+## 📊 Experiment Details
 
-### Datasets
+### 📂 Datasets
 
-| **Dataset** | **Usage** | **Duration (Hours)** | **Description** |
-|-------------|-----------|-----------------------|-----------------|
-| Mozilla Common Voice 7.0 + Personal Recordings | Training | ~1855 + 20 | Crowd-sourced and personal audio recordings |
-|             | Validation | ~161 + 2            | Validation split (8%) |
-| LibriSpeech | Training   | ~960                | Train-clean-100, Train-clean-360, Train-other-500 |
-|             | Validation | ~10.5               | Test-clean, Test-other |
+| Dataset                            | Use       | Hours         | Notes                            |
+|-----------------------------------|-----------|---------------|----------------------------------|
+| Mozilla Common Voice 7.0 + Personal | Training  | 1855 + 20     | Large crowd-sourced + personal  |
+|                                   | Validation| 161 + 2       | 8% Validation split              |
+| LibriSpeech                        | Training  | 960           | Full training set                |
+|                                   | Validation| 10.5          | Test-clean, Test-other           |
+
+### 🛠️ Training Configuration
+
+| Parameter            | Value           |
+|----------------------|-----------------|
+| `batch_size`         | 64              |
+| `precision`          | mixed precision |
+| `grad_clip`          | 0.6             |
+| `learning_rate (AdamW)` | 1e-4         |
+| `scheduler`          | ReduceLROnPlateau |
 
 ---
 
-### Experiment Results
+### 📉 Loss Curves
 
-#### Loss Curves
+| LibriSpeech | Mozilla Corpus + Personal | 
+|-------------|---------------------------|
+| ![](assets/libri_loss.png) | ![](assets/mozilla_corpus_loss.png) | 
 
-| LibriSpeech | Mozilla Corpus + Personal Recordings |
-|-------------|--------------------------------------|
-| ![Libri Loss](assets/libri_loss.png) | ![Mozilla Loss](assets/mozilla_corpus_loss.png) |
-
-| Combined Corpus | 
+|Combined |
 |-------------|
-| ![Libri Loss](assets/combined_corpus_loss.png) |    
+| ![](assets/combined_corpus_loss.png) |
 
-#### Greedy Decoding
+### 🧠 Greedy Decoding
+
+| Exp. | Dataset                                | Eval WER | Test-Clean WER | Test-Other WER | Model |
+|------|----------------------------------------|------------|------------|------------|--------|
+| 1    | LibriSpeech                            | 22.94      | 15.94      | 31.71      | [🔗](https://drive.google.com/file/d/1XcouMWSncUeNBvGZednuWYK1jdfKisCr/view?usp=drive_link) |
+| 2    | Mozilla + Personal                     | 25.29      | 26.22      | 42.59      | [🔗](https://drive.google.com/file/d/1b_ElF1ihnI1H4dTlGzAQQJZzgOt0jqiv/view?usp=drive_link) |
+| 3    | Combined (Mozilla + Libri + Personal)  | 28.47      | 19.33      | 33.50      | [🔗](https://drive.google.com/file/d/1J0XCK31raK5cYQoueOX42iHFy5L0BADU/view?usp=sharing) |
+
+> ⚠️ Mozilla eval set is ~15× larger than LibriSpeech eval set.
+
+
+### 🧠 Beam Search + Language Model Decoding
 
 > [!NOTE]
->The model trained on the Mozilla Corpus dataset shows a slightly higher WER compared to the LibriSpeech dataset. However, it's important to note that the Mozilla validation was conducted on a dataset 15 times larger than the LibriSpeech validation set.
+> - Using Experiment No.3 Conformer model and LibriSpeech 4-gram KenLM
+> - **Parameter**: `beam_size` - `beam_threshold` - `beam_size_token` - `lm_weight`
+> - `word_score` = -0.26
+> - $Greedy$ = **No CTC Beam Search + No LM**
+> - `lm_weight` = $None$ means **CTC Beam Search but no LM**
 
-Exp. No | Dataset    | Greedy WER (%)   | Model Link |
-|----|--------|-----------|------------|
-|1. | LibriSpeech | 22.94    | [:link:](https://drive.google.com/file/d/1XcouMWSncUeNBvGZednuWYK1jdfKisCr/view?usp=drive_link) |
-|2. | Mozilla Corpus + Personal Records | 25.29 | [:link:](https://drive.google.com/file/d/1b_ElF1ihnI1H4dTlGzAQQJZzgOt0jqiv/view?usp=drive_link) |
-|3. |Mozilla Corpus + Personal Records + LibriSpeech | 28.49    | ![Status](https://img.shields.io/badge/status-inprogress-yellow.svg) |
-
-#### Beam Search Decoding + 4-gram Language Model 
-> Results from Experiment 3 using Beam Search Decoding with a 4-gram Language Model
-
-| Decoding Parameters                                                                                         | Dataset       | Avg WER (%) | Avg CER (%) |
-|-------------------------------------------------------------------------------------------------------------|---------------|-------------|-------------|
-| Beam Size: _50_<br>Beam Threshold: _10_<br>Beam Size Token: _—_<br>LM Weight: _3.23_<br>Word Score: _-0.26_ | test-clean    | 12.80       | —           |
-|                                                                                                             | test-other    | 24.90       | —           |
-| Beam Size: _25_<br>Beam Threshold: _15_<br>Beam Size Token: _10_<br>LM Weight: _1.23_<br>Word Score: _-0.26_ | test-clean    | 9.94        | 4.19        |
-|                                                                                                             | test-other    | 21.69       | 11.02       |
-| **Beam Size: _50_<br>Beam Threshold: _20_<br>Beam Size Token: _15_<br>LM Weight: _1.23_<br>Word Score: _-0.26_** | **test-clean** | **9.46**     | **3.93**     |
-|                                                                                                             | **test-other** | **20.84**    | **10.40**    |
-
-
+Parameter | Test-Clean WER | Test-Clean CER | Test-Other WER | Test-Other CER |
+|-|-|-|-|-|
+$Greedy$ | 19.33 | 5.75 | 33.50 | 12.44
+$50$ - $25$ - $15$ - $None$ | 16.04 | 5.82 | 30.86 | 13.80
+$100$ - $50$ - $25$ - $None$ | 15.83 | 5.50 | 30.48 | 13.11
+$50$ - $25$ - $15$ - $3.23$ | 11.01 | 5.43 | 23.93 | 13.90
+$50$ - $25$ - $15$ - $1.23$ | 9.46 | 3.93 | 20.89 | 10.40
+$100$ - $50$ - $25$ - $1.23$ | 9.21 | 3.76 | 20.32 | 10.03
+$250$ - $75$ - $25$ - $1.23$ | 9.00 | 3.66 | 19.97 | 9.74
+$500$ - $100$ - $30$ - $1.23$ | **8.94** | **3.61** | **19.74** | **9.62**
 ---
 
-## Citation
+## 📌 Citation
 
 ```bibtex
 @misc{gulati2020conformer,
-      title={Conformer: Convolution-augmented Transformer for Speech Recognition}, 
-      author={Anmol Gulati et al.},
-      year={2020},
-      url={https://arxiv.org/abs/2005.08100}, 
+  title={Conformer: Convolution-augmented Transformer for Speech Recognition},
+  author={Anmol Gulati et al.},
+  year={2020},
+  url={https://arxiv.org/abs/2005.08100}
 }
 ```
