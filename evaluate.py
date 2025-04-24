@@ -1,3 +1,4 @@
+""" Script to evaluate conformer checkpoint using CTC Beam Search on LibriSpeech Validation Sets """
 import os
 import argparse
 import torchaudio
@@ -6,13 +7,13 @@ from torchaudio.datasets import LIBRISPEECH
 from jiwer import wer, cer
 from tqdm import tqdm
 
+# NOTE:
+# Change CTC Beam Search parameters in decoder.py to evaluate on different configurations
 from decoder import SpeechRecognitionEngine
 
 
+# === Load the mel-spectrogram featurizer consistent with the model's training ===
 def load_featurizer():
-    """
-    Load the mel-spectrogram featurizer consistent with the model's training.
-    """
     return torchaudio.transforms.MelSpectrogram(
         sample_rate=16000,
         n_fft=400,
@@ -20,6 +21,7 @@ def load_featurizer():
         hop_length=160,
         n_mels=80,
     )
+# =======================
 
 
 def evaluate(model_path, token_path, dataset_path, split="test-clean", max_samples=None):
