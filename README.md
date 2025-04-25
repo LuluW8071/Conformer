@@ -166,7 +166,8 @@ python3 app.py \
 
 ### 🧠 Greedy Decoding
 
-| Exp. | Dataset                                | Eval WER | Test-Clean WER | Test-Other WER | Model |
+| Exp. | Dataset                                | Eval WER | Test-
+Clean WER | Test-Other WER | Model |
 |------|----------------------------------------|------------|------------|------------|--------|
 | 1    | LibriSpeech                            | 22.94      | 15.94      | 31.71      | [🔗](https://drive.google.com/file/d/1XcouMWSncUeNBvGZednuWYK1jdfKisCr/view?usp=drive_link) |
 | 2    | Mozilla + Personal                     | 25.29      | 26.22      | 42.59      | [🔗](https://drive.google.com/file/d/1b_ElF1ihnI1H4dTlGzAQQJZzgOt0jqiv/view?usp=drive_link) |
@@ -193,7 +194,16 @@ $50$ - $25$ - $15$ - $3.23$ | 11.01 | 5.43 | 23.93 | 13.90
 $50$ - $25$ - $15$ - $1.23$ | 9.46 | 3.93 | 20.89 | 10.40
 $100$ - $50$ - $25$ - $1.23$ | 9.21 | 3.76 | 20.32 | 10.03
 $250$ - $75$ - $25$ - $1.23$ | 9.00 | 3.66 | 19.97 | 9.74
-$500$ - $100$ - $30$ - $1.23$ | **8.94** | **3.61** | **19.74** | **9.62**
+$500$ - $100$ - $30$ - $1.23$ | 8.94 | 3.61 | 19.74 | 9.62
+$500$ - $100$ - $30$ - $1.23$ | **8.88** | **3.61** | **19.59** | **9.53**
+
+<!--
+Custom KEN LM trained on preprocessed sentences of Mozilla corpus gave 
+Test-Clean | WER: 12.44 - CER: 4.80
+Test-Other | WER: 24.37 - CER: 11.41
+Do note: Size of Librispeech LM: 2.2GB while custom that i trained had 260 MB
+-->
+
 ---
 
 ## 📌 Citation
@@ -201,7 +211,7 @@ $500$ - $100$ - $30$ - $1.23$ | **8.94** | **3.61** | **19.74** | **9.62**
 ```bibtex
 @misc{gulati2020conformer,
   title={Conformer: Convolution-augmented Transformer for Speech Recognition},
-  author={Anmol Gulati et al.},
+  author={Anmol Gulati, James Qin, Chung-Cheng Chiu et al.},
   year={2020},
   url={https://arxiv.org/abs/2005.08100}
 }
