@@ -166,12 +166,11 @@ python3 app.py \
 
 ### 🧠 Greedy Decoding
 
-| Exp. | Dataset                                | Eval WER | Test-
-Clean WER | Test-Other WER | Model |
+| Exp. | Dataset                                | Eval WER | Test-Clean WER | Test-Other WER | Model |
 |------|----------------------------------------|------------|------------|------------|--------|
 | 1    | LibriSpeech                            | 22.94      | 15.94      | 31.71      | [🔗](https://drive.google.com/file/d/1XcouMWSncUeNBvGZednuWYK1jdfKisCr/view?usp=drive_link) |
 | 2    | Mozilla + Personal                     | 25.29      | 26.22      | 42.59      | [🔗](https://drive.google.com/file/d/1b_ElF1ihnI1H4dTlGzAQQJZzgOt0jqiv/view?usp=drive_link) |
-| 3    | Combined (Mozilla + Libri + Personal)  | 28.47      | 19.33      | 33.50      | [🔗](https://drive.google.com/file/d/1J0XCK31raK5cYQoueOX42iHFy5L0BADU/view?usp=sharing) |
+| 3    | Combined (Mozilla + Libri + Personal)  | 28.47      | 19.33      | 33.50      | [🔗](https://drive.google.com/file/d/1J0XCK31raK5cYQoueOX42iHFy5L0BADU/view?) 
 
 > ⚠️ Mozilla eval set is ~15× larger than LibriSpeech eval set.
 
@@ -195,7 +194,9 @@ $50$ - $25$ - $15$ - $1.23$ | 9.46 | 3.93 | 20.89 | 10.40
 $100$ - $50$ - $25$ - $1.23$ | 9.21 | 3.76 | 20.32 | 10.03
 $250$ - $75$ - $25$ - $1.23$ | 9.00 | 3.66 | 19.97 | 9.74
 $500$ - $100$ - $30$ - $1.23$ | 8.94 | 3.61 | 19.74 | 9.62
-$500$ - $100$ - $30$ - $1.23$ | **8.88** | **3.61** | **19.59** | **9.53**
+$1000$ - $250$ - $100$ - $1.23$ | **8.88** | **3.61** | **19.59** | **9.53**
+
+> As the parameters of the beam search decoder—such as beam width or number of hypotheses—increase, the inference time also increases due to the additional computational overhead required to explore more decoding paths.
 
 <!--
 Custom KEN LM trained on preprocessed sentences of Mozilla corpus gave 
