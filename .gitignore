@@ -8,13 +8,72 @@ venv/
 __pycache__
 audio_temp
 
-# Data
-data
 
 # Checkpoints
 saved_checkpoint
 freezed
 model
 
-# Ignore files
+optimized_model.pt
+
+# Ignore Folders and files
 *.wav
+logs/
+
+
+# dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Next.js build output
+.next/
+out/
+build/
+
+# production
+dist/
+
+# env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# runtime
+*.pid
+*.seed
+*.pid.lock
+
+# coverage
+coverage/
+
+# cache
+.cache/
+.eslintcache
+.turbo/
+
+# Vercel
+.vercel/
+
+# TypeScript
+*.tsbuildinfo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+
+# optional: testing
+cypress/videos/
+cypress/screenshots/
