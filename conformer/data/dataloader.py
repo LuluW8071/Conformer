@@ -5,7 +5,7 @@ import torch.nn as nn
 from torchaudio.datasets import LIBRISPEECH
 
 from torch.utils.data import DataLoader, ConcatDataset
-from conformer.utils.dataset import LibriSpeechDataset, MozillaDataset
+from conformer.data.dataset import LibriSpeechDataset, MozillaDataset
 
 # Lightning Data Module
 class SpeechDataModule(pl.LightningDataModule):
