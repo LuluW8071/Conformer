@@ -10,6 +10,7 @@ import librosa
 
 from tqdm import tqdm
 
+from conformer.utils.logging import logger
 from conformer.scripts.helper import (
     TARGET_SAMPLE_RATE,
     AUGMENTATIONS,
@@ -19,8 +20,6 @@ from conformer.scripts.helper import (
     write_audio,
     clean_text,
 )
-
-logger = logging.getLogger("Mimic Records Data Prep")
 
 def process_audio(file_path, text, output_dir):
     """Resample one recording, write all augmentations, return their entries."""
@@ -63,7 +62,7 @@ def main(args):
             entries.extend(process_audio(file_path, text, output_dir))
 
     write(entries, args.output_file, indent=2)
-    logger.info(f"Dataset saved to {args.output_file} ({len(entries)} entries)")
+    logger.success(f"Dataset saved to {args.output_file} ({len(entries)} entries)")
 
 
 def parse_args():

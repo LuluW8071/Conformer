@@ -1,17 +1,16 @@
-"""Entry point for training the Conformer ASR model.
-
-Run:
-    python train.py --train_json path/to/train.json --valid_json path/to/valid.json
 """
+Entry point for training the Conformer ASR model.
+"""
+
 import os
 import argparse
 
-import comet_ml  # noqa: F401  (imported first so Comet can auto-instrument)
+import comet_ml  
 import torch
 import pytorch_lightning as pl
 from dotenv import load_dotenv
 
-from conformer.config import ModelConfig
+from conformer.utils import ModelConfig
 from conformer.asr_trainer import ASRTrainer
 from conformer.builders import build_data_module, build_model, build_trainer
 

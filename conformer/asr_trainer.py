@@ -13,11 +13,13 @@ import torch.optim as optim
 import pytorch_lightning as pl
 from torchmetrics.text import WordErrorRate, CharErrorRate
 
-from conformer.utils import GreedyDecoder
+from conformer.utils.text_transform import GreedyDecoder
 
 
 class ASRTrainer(pl.LightningModule):
-    """Trains / validates / tests the Conformer encoder-decoder with CTC loss."""
+    """
+    Trains / validates / tests the Conformer encoder-decoder with CTC loss.
+    """
 
     def __init__(
         self,

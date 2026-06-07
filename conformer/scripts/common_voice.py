@@ -7,12 +7,12 @@ the transcripts into train/test JSON manifests for ASR training.
 import argparse
 import csv
 import os
-import logging
-from multiprocessing.pool import ThreadPool
 
+from multiprocessing.pool import ThreadPool
 from sox.core import SoxiError
 from tqdm import tqdm
 
+from conformer.utils.logging import logger
 from conformer.scripts.helper import (
     resample,
     entry,
@@ -21,7 +21,6 @@ from conformer.scripts.helper import (
     clean_text,
 )
 
-logger = logging.getLogger("CommonVoice Data Prep")
 
 def _output_name(file_name: str, output_format: str) -> str:
     return file_name.rpartition(".")[0] + "." + output_format
@@ -80,7 +79,7 @@ def main(args):
     train, test = split_train_test(entries, args.percent, seed=args.seed)
     write(train, os.path.join(args.save_json_path, "train.json"))
     write(test, os.path.join(args.save_json_path, "test.json"))
-    logger.info(f"Done! {len(train)} train / {len(test)} test entries.")
+    logger.success(f"Done! {len(train)} train / {len(test)} test entries.")
 
 
 def parse_args():

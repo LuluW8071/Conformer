@@ -1,5 +1,5 @@
 from torch import nn
-from models import ConformerEncoder, LSTMDecoder
+from conformer.models import ConformerEncoder, LSTMDecoder
 
 
 class ConformerASR(nn.Module):
