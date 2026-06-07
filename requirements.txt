@@ -9,6 +9,8 @@ comet_ml
 python-dotenv
 soundfile
 sox
-gradio
 flashlight-text
-flask
+# backend
+fastapi
+uvicorn[standard]
+python-multipart
