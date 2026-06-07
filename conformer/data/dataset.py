@@ -1,6 +1,5 @@
 import json
 import torchaudio
-import torch
 import torch.nn as nn
 import torchaudio.transforms as T
 
@@ -18,10 +17,6 @@ class MelSpec(nn.Module):
     def forward(self, x):
         return self.transform(x)
 
-
-# For Engine Inference Only
-def get_featurizer(sample_rate=16000, n_mels=80, hop_length=160):
-    return MelSpec(sample_rate=sample_rate, n_mels=n_mels, hop_length=hop_length)
 
 
 class BaseSpeechDataset(Dataset):
