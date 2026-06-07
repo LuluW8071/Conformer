@@ -2,6 +2,9 @@ import os
 import json
 import random
 import argparse
+import logging
+
+logger = logging.getLogger("JSON Merger")
 
 def load_and_merge_json_files(file_paths):
     merged_data = []
@@ -33,7 +36,7 @@ def main():
     shuffled_data = shuffle_data(merged_data)
     save_to_json(shuffled_data, args.output)
 
-    print(f"Merging and shuffling complete. Output saved to '{args.output}'.")
+    logger.info(f"Merging and shuffling complete. Output saved to '{args.output}'.")
 
 if __name__ == "__main__":
     main()
